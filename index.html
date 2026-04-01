@@ -1,0 +1,1122 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Toma Lead - CRM de Vendas com WhatsApp Automático</title>
+        <link rel="manifest" href="manifest.json">
+    <!-- PWA iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Toma Lead">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="apple-touch-icon" href="pwa_icon_180.php">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ["Inter","system-ui","sans-serif"],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#1e40af',
+                            700: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'slide-up': 'slideUp 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* White Label Branding */
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #1e40af;
+                    }
+        
+        .bg-primary { background-color: #3b82f6 !important; }
+        .text-primary { color: #3b82f6 !important; }
+        .border-primary { border-color: #3b82f6 !important; }
+        .bg-secondary { background-color: #1e40af !important; }
+        .text-secondary { color: #1e40af !important; }
+        .border-secondary { border-color: #1e40af !important; }
+        .hover\:bg-primary:hover { background-color: #1e40af !important; }
+        .hover\:text-primary:hover { color: #3b82f6 !important; }
+        
+        /* Efeitos Visuais */
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+        }
+        
+        .blob {
+            position: absolute;
+            filter: blur(90px);
+            z-index: 0;
+            opacity: 0.55;
+            animation: moveBlob 10s infinite alternate;
+        }
+        
+        @keyframes moveBlob {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(20px, -20px) scale(1.1); }
+        }
+
+        /* Roleta: fluxo 1 número → vários atendentes */
+        .roleta-dot {
+            animation: roletaFlow 1.2s ease-in-out infinite;
+            opacity: 0.4;
+        }
+        .roleta-dot:nth-child(1) { animation-delay: 0s; }
+        .roleta-dot:nth-child(2) { animation-delay: 0.2s; }
+        .roleta-dot:nth-child(3) { animation-delay: 0.4s; }
+        .roleta-dot:nth-child(4) { animation-delay: 0.6s; }
+        @keyframes roletaFlow {
+            0%, 100% { opacity: 0.3; transform: translateX(0); }
+            50% { opacity: 1; transform: translateX(4px); }
+        }
+        .roleta-person {
+            animation: roletaPerson 2s ease-in-out infinite;
+            opacity: 0.9;
+        }
+        .roleta-person:nth-child(1) { animation-delay: 0.1s; }
+        .roleta-person:nth-child(2) { animation-delay: 0.4s; }
+        .roleta-person:nth-child(3) { animation-delay: 0.7s; }
+        @keyframes roletaPerson {
+            0%, 100% { opacity: 0.85; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        /* Phone Mockup Animation Styles */
+        .phone-mockup {
+            border: 12px solid #1e293b;
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            background: #e2e8f0;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 320px;
+            margin: 0 auto;
+            transform: rotate(-2deg);
+            transition: transform 0.3s;
+        }
+        .phone-mockup:hover {
+            transform: rotate(0deg) scale(1.02);
+        }
+        .phone-screen {
+            background-color: #efeae2; /* WhatsApp bg color */
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            height: 550px;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            font-family: Helvetica, Arial, sans-serif;
+            position: relative;
+        }
+        .chat-bubble {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            line-height: 1.4;
+            position: relative;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+            opacity: 0; /* Starts hidden */
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .chat-bubble.sent {
+            background: #d9fdd3;
+            align-self: flex-end;
+            border-top-right-radius: 0;
+            color: #111b21;
+        }
+        .chat-bubble.received {
+            background: #ffffff;
+            align-self: flex-start;
+            border-top-left-radius: 0;
+            color: #111b21;
+        }
+        .chat-time {
+            font-size: 9px;
+            color: #667781;
+            text-align: right;
+            margin-top: 4px;
+        }
+        .typing-indicator {
+            background: #fff;
+            padding: 10px 15px;
+            border-radius: 20px;
+            align-self: flex-start;
+            margin-bottom: 12px;
+            display: none; /* Controlled by JS/Animation logic */
+            width: fit-content;
+        }
+        .dot {
+            height: 6px;
+            width: 6px;
+            background-color: #b1b1b1;
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 1.3s linear infinite;
+        }
+        .dot:nth-child(2) { animation-delay: 0.1s; margin: 0 2px; }
+        .dot:nth-child(3) { animation-delay: 0.2s; }
+        
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-4px); }
+        }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        
+        /* Notificação CRM Overlay */
+        .crm-notification {
+            position: absolute;
+            top: 20px;
+            right: -40px;
+            background: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #10b981;
+            width: 260px;
+            z-index: 20;
+            opacity: 0;
+            animation: slideLeft 0.5s ease-out forwards;
+            animation-delay: 4.5s; /* Aparece depois de algumas mensagens */
+        }
+        @keyframes slideLeft {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Linha animada das abas de funcionalidades – controlada por JS */
+        .feature-tabs-list {
+            position: relative;
+        }
+        .feature-tabs-line-js {
+            position: absolute;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(to right, #3b82f6, #a855f7);
+            border-radius: 999px;
+            transition: all 0.35s ease;
+            pointer-events: none;
+        }
+
+        .feature-tab {
+            position: relative;
+            transition: background-color 0.25s ease, box-shadow 0.25s ease, color 0.25s ease;
+        }
+        .feature-tab-active {
+            background-color: #ffffff;
+            box-shadow: 0 10px 25px -10px rgba(15, 23, 42, 0.18);
+            color: #020617;
+        }
+    </style>
+</head>
+<body class="font-sans text-slate-800 bg-white antialiased overflow-x-hidden">
+
+    <!-- Navbar -->
+    <header class="fixed w-full top-0 z-50 glass-nav transition-all duration-300">
+        <div class="container mx-auto px-4 sm:px-6 min-h-[4.5rem] sm:min-h-[5rem] flex flex-wrap justify-between items-center gap-3 py-3 sm:py-0 sm:h-20">
+            <a href="#" class="flex items-center gap-2 tracking-tight shrink-0 min-h-[2.5rem] sm:min-h-0" aria-label="Toma Lead">
+                <img src="assets/post.png" alt="Toma Lead" class="h-9 sm:h-10 w-auto max-h-12 sm:max-h-10 object-contain object-left" style="max-width: 200px;">
+            </a>
+
+            <nav id="nav-desktop" class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-600">
+                <a href="#funcionalidades" class="hover:text-brand-600 transition">Funcionalidades</a>
+                <a href="#demo-pipeline" class="hover:text-brand-600 transition">Demo Interativa</a>
+                <a href="#planos" class="hover:text-brand-600 transition">Planos</a>
+            </nav>
+
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                <a href="login_page.php" class="hidden sm:inline-flex items-center justify-center text-slate-600 hover:text-brand-600 font-semibold text-sm px-3 py-2 rounded-full border border-transparent hover:border-slate-200">
+                    Entrar
+                </a>
+                <a href="register_page.php" class="hidden md:inline-flex items-center justify-center px-5 py-2.5 rounded-full text-sm font-semibold text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition bg-gradient-to-r from-brand-600 to-brand-700">
+                    Peça uma demonstração
+                </a>
+                <button id="nav-mobile-toggle" type="button" class="md:hidden p-2.5 text-slate-600 hover:text-brand-600 rounded-lg min-w-[40px] min-h-[40px] flex items-center justify-center border border-slate-200/70 bg-white/80" aria-label="Menu">
+                    <i class="fas fa-bars text-lg"></i>
+                </button>
+            </div>
+        </div>
+        <div id="nav-mobile-dropdown" class="hidden md:hidden absolute top-full left-0 right-0 bg-white border-b border-slate-200 shadow-lg py-4 px-4 space-y-1">
+            <a href="#funcionalidades" class="block py-3 px-2 text-slate-600 hover:text-brand-600 font-medium rounded-lg hover:bg-slate-50">Funcionalidades</a>
+            <a href="#demo-pipeline" class="block py-3 px-2 text-slate-600 hover:text-brand-600 font-medium rounded-lg hover:bg-slate-50">Demo Interativa</a>
+            <a href="#planos" class="block py-3 px-2 text-slate-600 hover:text-brand-600 font-medium rounded-lg hover:bg-slate-50">Planos</a>
+            <a href="login_page.php" class="block py-3 px-2 text-slate-600 hover:text-brand-600 font-medium rounded-lg hover:bg-slate-50">Entrar</a>
+            <a href="register_page.php" class="block py-3 px-2 text-white bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-700 font-semibold rounded-lg shadow-md mt-2 text-center">
+                Peça uma demonstração
+            </a>
+            <a href="chat.php" id="header-install-app" class="flex items-center gap-2 py-3 px-2 text-brand-600 hover:text-brand-700 font-semibold rounded-lg hover:bg-brand-50 border border-brand-200 mt-2" title="Abrir ou instalar o app">
+                <i class="fas fa-mobile-alt text-lg"></i>
+                <span id="header-install-label">Instalar app</span>
+            </a>
+        </div>
+    </header>
+    <script>
+    document.getElementById('nav-mobile-toggle')?.addEventListener('click', function() {
+        var d = document.getElementById('nav-mobile-dropdown');
+        if (d) d.classList.toggle('hidden');
+    });
+    document.querySelectorAll('#nav-mobile-dropdown a').forEach(function(a) {
+        a.addEventListener('click', function() { document.getElementById('nav-mobile-dropdown').classList.add('hidden'); });
+    });
+    </script>
+
+    <!-- Hero Section -->
+    <section class="relative pt-24 pb-20 lg:pt-36 lg:pb-24 overflow-hidden bg-gradient-to-br from-brand-50 via-white to-indigo-50">
+        <!-- Blobs de fundo principais -->
+        <div class="blob w-80 h-80 bg-blue-200 rounded-full top-[-140px] left-[-140px]"></div>
+        <div class="blob w-[460px] h-[460px] bg-indigo-100 rounded-full bottom-[-180px] right-[-100px] animation-delay-2000"></div>
+
+        <!-- Elementos decorativos de background -->
+        <div class="pointer-events-none absolute -right-20 top-32 hidden md:block">
+            <div class="w-40 h-40 rounded-3xl bg-gradient-to-br from-brand-500/15 to-indigo-500/25 border border-white/60 shadow-2xl rotate-12"></div>
+        </div>
+        <div class="pointer-events-none absolute -left-16 bottom-32 hidden md:block">
+            <div class="w-32 h-32 rounded-[32px] bg-gradient-to-tr from-blue-500/15 to-emerald-400/20 backdrop-blur-sm border border-white/60 shadow-xl -rotate-6"></div>
+        </div>
+        <div class="pointer-events-none absolute left-1/2 -translate-x-1/2 top-24 hidden lg:block">
+            <div class="w-[520px] h-[520px] border border-dashed border-indigo-200/80 rounded-[40%] rotate-6"></div>
+        </div>
+        <!-- Logo principal no background (mais presente) -->
+        <div class="pointer-events-none absolute left-6 top-6 z-[1]">
+            <img src="assets/post.png"
+                 alt="Toma Lead"
+                 class="h-14 w-auto opacity-100 drop-shadow-xl">
+        </div>
+
+        <!-- Ícone de gráfico grande -->
+        <div class="pointer-events-none absolute left-10 top-44 hidden lg:block">
+            <div class="w-32 h-32 rounded-full border border-slate-200/80 bg-white/90 shadow-2xl flex items-center justify-center">
+                <i class="fas fa-chart-line text-brand-600 text-2xl"></i>
+            </div>
+        </div>
+
+        <!-- Ícones extras no background (maiores e mais presentes) -->
+        <div class="pointer-events-none absolute right-10 top-24 hidden md:block">
+            <div class="w-16 h-16 rounded-3xl bg-white/90 border border-slate-200/80 shadow-2xl flex items-center justify-center">
+                <i class="fab fa-whatsapp text-emerald-500 text-2xl"></i>
+            </div>
+        </div>
+        <div class="pointer-events-none absolute right-6 bottom-10 hidden lg:block">
+            <div class="w-20 h-20 rounded-3xl bg-white/90 border border-slate-200/80 shadow-2xl flex items-center justify-center rotate-6">
+                <i class="fas fa-robot text-indigo-500 text-3xl"></i>
+            </div>
+        </div>
+
+        <div class="container mx-auto px-6 relative z-0">
+            <!-- Texto centralizado como na referência -->
+            <div class="max-w-3xl mx-auto text-center">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 border border-blue-100 text-brand-700 text-xs font-semibold uppercase tracking-wider mb-6">
+                        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                        CRM de vendas com WhatsApp e IA
+                    </div>
+                    
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 leading-tight">
+                        Simplifique suas vendas<br class="hidden md:block">
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">com o Toma Lead CRM</span>
+                    </h1>
+                    
+                    <p class="text-lg md:text-xl text-slate-500 mb-8 leading-relaxed max-w-2xl mx-auto">
+                        Reúna WhatsApp, CRM Kanban e automações em um só lugar. Centralize conversas, organize oportunidades e feche mais negócios com a sua equipe.
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="register_page.php" class="px-8 py-3.5 bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-700 text-white rounded-full font-semibold text-base md:text-lg shadow-xl shadow-blue-500/30 transition hover:-translate-y-1 flex items-center justify-center">
+                            Peça sua demonstração
+                            <i class="fas fa-arrow-right ml-2 text-sm"></i>
+                        </a>
+                        <a href="#demo-pipeline" class="px-8 py-3.5 bg-white/80 hover:bg-white text-slate-700 border border-slate-200 rounded-full font-semibold text-base md:text-lg shadow-sm transition flex items-center justify-center gap-2">
+                            <i class="fas fa-play text-brand-600"></i>
+                            Ver funil em ação
+                        </a>
+                    </div>
+                    
+                    <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-slate-400">
+                        <div class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Sem cartão de crédito</div>
+                        <div class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Comece em poucos minutos</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mockup centralizado abaixo do texto, como o print grande -->
+            <div class="relative mt-8 max-w-7xl mx-auto px-3 sm:px-6">
+                <div class="relative w-full rounded-[2.2rem] bg-gradient-to-b from-transparent via-indigo-50/60 to-slate-50/90 p-2 sm:p-3 shadow-lg">
+                    <!-- App window mockup usando print real -->
+                    <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden md:animate-float">
+                        <img src="assets/pipeline-hero.png"
+                             alt="Tela do funil de vendas do Toma Lead"
+                             class="w-full h-auto object-contain">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Pipeline Demo Section - Versão 1: App real dentro da página -->
+    <section id="demo-pipeline" class="relative py-24 bg-secondary border-y border-slate-200 overflow-hidden" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 45%, #020617 100%);">
+        <!-- ícones grandes de fundo (minimal tech) -->
+        <!-- ícone do WhatsApp removido a pedido do usuário -->
+        <div class="pointer-events-none absolute right-10 top-44 hidden lg:block z-0">
+            <div class="w-24 h-24 rounded-full border border-sky-400/40 bg-sky-400/10 backdrop-blur-sm flex items-center justify-center shadow-xl rotate-6">
+                <i class="fas fa-chart-line text-3xl text-sky-300"></i>
+            </div>
+        </div>
+        <div class="pointer-events-none absolute left-8 top-1/2 -translate-y-1/2 hidden md:block z-0">
+            <div class="w-20 h-20 rounded-3xl border border-white/40 bg-white/10 backdrop-blur-sm flex items-center justify-center shadow-xl rotate-[-6deg]">
+                <i class="fas fa-mouse-pointer text-2xl text-white/70"></i>
+            </div>
+        </div>
+        <div class="container mx-auto px-6 relative z-20">
+            <!-- Cabeçalho da seção -->
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-medium text-slate-100/85 mb-4">
+                    <i class="fas fa-bolt text-xs text-amber-300"></i>
+                    Seu funil funcionando 24/7 com WhatsApp e IA
+                </div>
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-3">
+                    Gerencie vendas com o poder do
+                    <span class="text-brand-100">Arrasta e Solta</span>
+                </h2>
+                <p class="text-base sm:text-lg text-slate-100/80 max-w-2xl mx-auto">
+                    Veja em segundos quem acabou de entrar, quem está em negociação e quais negócios foram fechados hoje.
+                </p>
+            </div>
+
+            <!-- Cards de métricas rápidos -->
+            <div class="grid sm:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto mb-10">
+                <div class="bg-white/8 border border-white/15 rounded-2xl px-4 py-3 text-left text-slate-50 flex flex-col gap-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-medium text-slate-200">Novos leads hoje</span>
+                        <span class="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center">
+                            <i class="fas fa-user-plus text-blue-200 text-xs"></i>
+                        </span>
+                    </div>
+                    <div class="text-2xl font-bold tracking-tight">32</div>
+                    <span class="text-[11px] text-emerald-200 flex items-center gap-1">
+                        <i class="fas fa-arrow-up text-[10px]"></i> +18% vs. ontem
+                    </span>
+                </div>
+                <div class="bg-white/8 border border-white/15 rounded-2xl px-4 py-3 text-left text-slate-50 flex flex-col gap-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-medium text-slate-200">Em negociação</span>
+                        <span class="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center">
+                            <i class="fas fa-handshake text-amber-200 text-xs"></i>
+                        </span>
+                    </div>
+                    <div class="text-2xl font-bold tracking-tight">R$ 58k</div>
+                    <span class="text-[11px] text-slate-200">
+                        7 oportunidades ativas nesta etapa
+                    </span>
+                </div>
+                <div class="bg-white/8 border border-white/15 rounded-2xl px-4 py-3 text-left text-slate-50 flex flex-col gap-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-medium text-slate-200">Ganhos no mês</span>
+                        <span class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                            <i class="fas fa-trophy text-emerald-200 text-xs"></i>
+                        </span>
+                    </div>
+                    <div class="text-2xl font-bold tracking-tight">R$ 142k</div>
+                    <span class="text-[11px] text-slate-200">
+                        Conversão média de <strong class="font-semibold">24%</strong>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Pipeline Container (app real) -->
+            <div class="relative max-w-6xl mx-auto">
+                <div class="absolute -inset-px rounded-[1.5rem] bg-gradient-to-r from-sky-500/30 via-emerald-400/25 to-purple-500/25 opacity-60 blur-sm"></div>
+                <div class="relative bg-white/98 p-5 sm:p-6 rounded-[1.4rem] shadow-xl border border-slate-100/90 overflow-hidden">
+                    <!-- Toolbar Fake -->
+                    <div class="flex justify-between items-center mb-6 md:mb-7 border-b border-slate-100 pb-4">
+                        <div class="flex items-center gap-4">
+                            <div class="flex -space-x-2">
+                                <div class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white"></div>
+                                <div class="w-8 h-8 rounded-full bg-purple-500 border-2 border-white"></div>
+                                <div class="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs text-gray-500 font-bold">+3</div>
+                            </div>
+                            <span class="text-sm text-white font-medium">Equipe Comercial</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="px-3 py-1.5 text-xs font-semibold text-brand-600 bg-brand-50 rounded-lg flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Pipeline Padrão
+                            </button>
+                            <button class="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-50">
+                                <i class="fas fa-filter"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Board -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 min-h-[380px]">
+                    
+                    <!-- Coluna 1: Novos Leads -->
+                    <div class="flex flex-col h-full bg-slate-50 rounded-xl p-3 border border-slate-100">
+                        <div class="flex justify-between items-center mb-4 px-1">
+                            <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide">Novos Leads</h3>
+                            <span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded-full font-bold">3</span>
+                        </div>
+                        <div class="drop-zone flex-1 space-y-3" id="col-new">
+                            <!-- Card 1 -->
+                            <div class="demo-card bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:shadow-md relative group" draggable="true">
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Facebook Ads</span>
+                                </div>
+                                <h4 class="font-bold text-slate-800">Ricardo Mendes</h4>
+                                <p class="text-xs text-slate-500 mt-1 mb-3">Interessado no Plano Pro</p>
+                                <div class="flex justify-between items-center pt-2 border-t border-slate-50">
+                                    <div class="text-sm font-bold text-slate-700">R$ 297,00</div>
+                                    <div class="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs"><i class="fab fa-whatsapp"></i></div>
+                                </div>
+                            </div>
+                            <!-- Card 2 -->
+                            <div class="demo-card bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:shadow-md relative group" draggable="true">
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="text-xs font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded">Instagram</span>
+                                </div>
+                                <h4 class="font-bold text-slate-800">Loja de Roupas XYZ</h4>
+                                <div class="flex justify-between items-center pt-2 border-t border-slate-50">
+                                    <div class="text-sm font-bold text-slate-700">R$ 0,00</div>
+                                    <div class="text-xs text-slate-400">14:30</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coluna 2: Em Negociação -->
+                    <div class="flex flex-col h-full bg-slate-50 rounded-xl p-3 border border-slate-100">
+                        <div class="flex justify-between items-center mb-4 px-1">
+                            <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide">Em Negociação</h3>
+                            <span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full font-bold">1</span>
+                        </div>
+                        <div class="drop-zone flex-1 space-y-3" id="col-negotiation">
+                             <!-- Card 3 -->
+                             <div class="demo-card bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:shadow-md relative group" draggable="true">
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded">Indicação</span>
+                                </div>
+                                <h4 class="font-bold text-slate-800">Ana Clara</h4>
+                                <p class="text-xs text-slate-500 mt-1 mb-3">Aguardando proposta</p>
+                                <div class="flex justify-between items-center pt-2 border-t border-slate-50">
+                                    <div class="text-sm font-bold text-slate-700">R$ 5.000,00</div>
+                                    <div class="text-xs text-slate-400">Ontem</div>
+                                </div>
+                            </div>
+                            <!-- Placeholder vazio visual -->
+                            <div class="border-2 border-dashed border-slate-200 rounded-xl h-24 flex items-center justify-center text-slate-400 text-xs pointer-events-none bg-slate-50/80">
+                                Arraste leads para negociar
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coluna 3: Fechado -->
+                    <div class="flex flex-col h-full bg-slate-50 rounded-xl p-3 border border-slate-100">
+                        <div class="flex justify-between items-center mb-4 px-1">
+                            <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide">Negócio fechado</h3>
+                            <span class="bg-emerald-50 text-emerald-700 text-xs px-2 py-0.5 rounded-full font-bold">2</span>
+                        </div>
+                        <div class="drop-zone flex-1 space-y-3" id="col-won">
+                            <!-- Card 4 -->
+                            <div class="demo-card bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500 relative opacity-90 hover:opacity-100 transition" draggable="true">
+                                <div class="flex justify-between items-start mb-2">
+                                    <i class="fas fa-check-circle text-green-500"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-800 line-through decoration-slate-400">Construtora Elite</h4>
+                                <div class="text-sm font-bold text-green-600">R$ 12.000,00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section - estilo abas + painel, inspirado na referência -->
+    <section id="funcionalidades" class="py-24 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] gap-10 lg:gap-20 items-stretch">
+                <!-- Coluna esquerda: replica do layout de abas da referência -->
+                <div>
+                    <h2 class="text-4xl md:text-5xl font-bold text-slate-900 mb-5 leading-tight">
+                        Pare de perder clientes<br>
+                        <span class="text-secondary">no limbo das conversas.</span>
+                    </h2>
+                    <p class="text-base md:text-lg text-slate-600 mb-8 max-w-xl">
+                        Com o Toma Lead, cada mensagem é uma oportunidade organizada, rastreada e pronta para fechar.
+                    </p>
+
+                    <!-- Lista de funcionalidades em estilo de abas simples (coluna 1) -->
+                    <div class="mt-4 text-base md:text-lg text-slate-700 border-t border-slate-100 feature-tabs-list">
+                        <div class="feature-tab border-b border-slate-100 py-4">
+                            <div class="font-semibold flex items-center gap-2">
+                                <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 text-blue-600 text-sm">
+                                    <i class="fas fa-user-plus"></i>
+                                </span>
+                                <span>Criação Automática de Leads</span>
+                            </div>
+                            <p class="text-sm md:text-base text-slate-500 mt-1">
+                                Chegou mensagem de número novo? O Toma Lead cria o card no pipeline automaticamente.
+                                Nunca mais esqueça de salvar um contato.
+                            </p>
+                        </div>
+                        <div class="feature-tab border-b border-slate-100 py-4">
+                            <div class="font-semibold flex items-center gap-2">
+                                <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 text-sm">
+                                    <i class="fas fa-robot"></i>
+                                </span>
+                                <span>IA Integrada</span>
+                            </div>
+                            <p class="text-sm md:text-base text-slate-500 mt-1">
+                                Treine o bot com o site da sua empresa e deixe ele responder dúvidas 24/7
+                                de forma humanizada e inteligente.
+                            </p>
+                        </div>
+                        <!-- Aba (será destacada pela animação JS quando ativa) -->
+                        <div class="feature-tab border-b border-slate-100 py-4">
+                            <div class="font-semibold flex items-center gap-2">
+                                <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 text-sm">
+                                    <i class="fas fa-users"></i>
+                                </span>
+                                <span>Múltiplos Atendentes</span>
+                            </div>
+                            <p class="text-sm md:text-base text-slate-500 mt-1">
+                                Um único número de WhatsApp para toda a sua equipe.
+                                Distribua os chats entre os vendedores e monitore tudo.
+                            </p>
+                        </div>
+                        <!-- linha animada que percorre as abas (controlada por JS) -->
+                        <div class="feature-tabs-line-js"></div>
+                    </div>
+                </div>
+
+                <!-- Coluna direita: painel da funcionalidade ativa (mock de tela) -->
+                <div class="relative h-full flex lg:pl-6 lg:ml-4">
+                    <!-- Fundo neutro, sem glow azul -->
+                    <div class="absolute inset-0 rounded-3xl bg-white pointer-events-none"></div>
+                    <div class="relative bg-white/95 rounded-3xl shadow-xl border border-slate-100 p-6 md:p-8 flex flex-col h-full lg:max-w-xl lg:ml-auto">
+                        <h3 class="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
+                            Tudo que um time de vendas precisa
+                        </h3>
+                        <p class="text-sm md:text-base text-slate-600 mb-6 max-w-xl">
+                            Combine automação, atendimento e organização em um só lugar — sem perder nenhuma conversa importante.
+                        </p>
+
+                        <!-- mock de tela: segunda metade das funcionalidades -->
+                        <div class="bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden mt-1 flex-1 flex flex-col">
+                            <div class="px-4 pt-4 pb-3 border-b border-slate-100">
+                                <span class="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[11px] font-medium text-slate-600">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                    Funcionalidades avançadas do Toma Lead
+                                </span>
+                            </div>
+                            <div class="p-4 md:p-5 space-y-4 text-[11px] md:text-xs text-slate-700 flex-1">
+                                <div class="space-y-1">
+                                    <div class="font-semibold text-slate-900 text-sm md:text-base flex items-center gap-2">
+                                        <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-amber-50 text-amber-500 text-sm">
+                                            <i class="fas fa-microphone"></i>
+                                        </span>
+                                        <span>IA Entende Áudio</span>
+                                    </div>
+                                    <p class="text-slate-600 text-xs md:text-sm">
+                                        Seu bot transcreve automaticamente mensagens de voz usando tecnologia Vosk.
+                                        Clientes podem falar e você responde normalmente!
+                                    </p>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="font-semibold text-slate-900 text-sm md:text-base flex items-center gap-2">
+                                        <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-sky-50 text-sky-500 text-sm">
+                                            <i class="fas fa-clock"></i>
+                                        </span>
+                                        <span>Agende Mensagens</span>
+                                    </div>
+                                    <p class="text-slate-600 text-xs md:text-sm">
+                                        Programe envios para o futuro e deixe lembretes, follow-ups e campanhas
+                                        saírem no horário perfeito, mesmo quando você estiver offline.
+                                    </p>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="font-semibold text-slate-900 text-sm md:text-base flex items-center gap-2">
+                                        <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-purple-50 text-purple-500 text-sm">
+                                            <i class="fas fa-columns"></i>
+                                        </span>
+                                        <span>Pipeline Kanban</span>
+                                    </div>
+                                    <p class="text-slate-600 text-xs md:text-sm">
+                                        Organize vendas visualmente. Arraste leads entre etapas e nunca perca
+                                        uma oportunidade de fechar negócio.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção Multi-tenant / Roleta: 1 número distribuído para a equipe -->
+    <section id="roleta" class="py-24 bg-slate-50 border-y border-slate-200">
+        <div class="container mx-auto px-6">
+            <div class="text-center max-w-2xl mx-auto mb-10">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
+                    Um número, toda a equipe
+                </h2>
+                <p class="text-sm md:text-base text-slate-600">
+                    Um único WhatsApp recebe todas as conversas. O sistema distribui os leads entre os atendentes
+                    na ordem da roleta, de forma justa e automática.
+                </p>
+            </div>
+
+            <div class="max-w-3xl mx-auto flex flex-col items-center gap-8">
+                <!-- Linha principal: ícone WhatsApp + traçado + círculos -->
+                <div class="w-full flex items-center justify-center gap-6 md:gap-10">
+                    <div class="flex-shrink-0 roleta-phone flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-emerald-400 text-white text-2xl md:text-3xl shadow-lg">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+
+                    <div class="flex-1 flex items-center">
+                        <div class="w-full h-[2px] bg-slate-200 rounded-full relative overflow-hidden">
+                            <div class="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-emerald-400 via-blue-500 to-purple-500 roleta-dot"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap justify-center gap-4 md:gap-6">
+                        <div class="roleta-person flex flex-col items-center">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm md:text-base font-bold shadow">
+                                1
+                            </div>
+                            <span class="text-xs text-slate-500 mt-1">Atendente</span>
+                        </div>
+                        <div class="roleta-person flex flex-col items-center">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-indigo-500 text-white flex items-center justify-center text-sm md:text-base font-bold shadow">
+                                2
+                            </div>
+                            <span class="text-xs text-slate-500 mt-1">Atendente</span>
+                        </div>
+                        <div class="roleta-person flex flex-col items-center">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-purple-500 text-white flex items-center justify-center text-sm md:text-base font-bold shadow">
+                                3
+                            </div>
+                            <span class="text-xs text-slate-500 mt-1">Atendente</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Plans -->
+    <section id="planos" class="py-24 bg-slate-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Escolha o plano ideal para o seu time</h2>
+                <p class="text-slate-600 text-lg">Comece grátis com o CRM Kanban e evolua para planos com WhatsApp conectado e IA quando estiver pronto.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+                <div class="bg-white border border-slate-200 rounded-2xl p-7 flex flex-col">
+                    <h3 class="text-sm font-semibold uppercase tracking-wider mb-2 text-slate-500">
+                        Free
+                    </h3>
+                    <div class="flex items-baseline mb-5">
+                        <span class="text-3xl font-bold text-slate-900">R$ 0</span>
+                        <span class="text-slate-400 ml-1 text-sm">/mês</span>
+                    </div>
+                    <ul class="space-y-3 mb-6 flex-1 text-sm text-slate-600">
+                        <li class="flex items-center"><i class="fas fa-check mr-2 text-slate-400"></i>Só CRM Kanban</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-2 text-slate-400"></i>Sem WhatsApp conectado</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-2 text-slate-400"></i>Ideal para testar o funil</li>
+                    </ul>
+                    <a href="register_page.php?plan=free" 
+                       class="block w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-full text-center text-sm transition">
+                        Começar Free
+                    </a>
+                </div>
+
+                <div class="bg-white border border-slate-200 rounded-2xl p-7 flex flex-col">
+                    <h3 class="text-sm font-semibold uppercase tracking-wider mb-2 text-blue-600">
+                        Start
+                    </h3>
+                    <div class="flex items-baseline mb-5">
+                        <span class="text-3xl font-bold text-slate-900">R$ 250</span>
+                        <span class="text-slate-400 ml-1 text-sm">/mês</span>
+                    </div>
+                    <ul class="space-y-3 mb-6 flex-1 text-sm text-slate-600">
+                        <li class="flex items-center"><i class="fas fa-check mr-2 text-blue-500"></i>1 WhatsApp conectado</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-2 text-blue-500"></i>3 usuários/atendentes</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-2 text-blue-500"></i>Pipeline Kanban completo</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-2 text-blue-500"></i>Agendamento de mensagens</li>
+                    </ul>
+                    <a href="register_page.php?plan=1" 
+                       class="block w-full py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold rounded-full text-center text-sm transition">
+                        Começar Start
+                    </a>
+                </div>
+
+                <div class="bg-white border-2 border-blue-500 shadow-lg rounded-2xl p-7 flex flex-col relative">
+                    <div class="absolute -top-3 inset-x-6 text-center">
+                        <span class="inline-block px-3 py-1 text-[11px] font-semibold rounded-full bg-blue-600 text-white uppercase tracking-wide shadow">
+                            Mais popular
+                        </span>
+                    </div>
+                    <h3 class="text-sm font-semibold uppercase tracking-wider mb-2 mt-3 text-blue-600">
+                        Prime
+                    </h3>
+                    <div class="flex items-baseline mb-5">
+                        <span class="text-3xl md:text-4xl font-extrabold text-slate-900">R$ 350</span>
+                        <span class="text-slate-400 ml-1 text-sm">/mês</span>
+                    </div>
+                    <ul class="space-y-3 mb-6 flex-1 text-sm text-slate-600">
+                        <li class="flex items-center"><i class="fas fa-check mr-2 text-blue-500"></i>Tudo do Start</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-2 text-blue-500"></i>10 usuários/atendentes</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-2 text-blue-500"></i>Chatbot com IA</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-2 text-blue-500"></i>API &amp; Webhooks</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-2 text-blue-500"></i>Integração Google Agenda &amp; Meet</li>
+                    </ul>
+                    <a href="register_page.php?plan=2" 
+                       class="block w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-full text-center text-sm transition">
+                        Assinar Prime
+                    </a>
+                </div>
+
+                <div class="bg-white border border-slate-200 rounded-2xl p-7 flex flex-col">
+                    <h3 class="text-sm font-semibold uppercase tracking-wider mb-2 text-purple-600">
+                        Black
+                    </h3>
+                    <div class="flex items-baseline mb-5">
+                        <span class="text-3xl font-bold text-slate-900">R$ 497</span>
+                        <span class="text-slate-400 ml-1 text-sm">/mês</span>
+                    </div>
+                    <ul class="space-y-3 mb-6 flex-1 text-sm text-slate-600">
+                        <li class="flex items-center"><i class="fas fa-check mr-2 text-purple-500"></i>Tudo do Prime</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-2 text-purple-500"></i>Usuários ilimitados</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-2 text-purple-500"></i>Suporte 24/7 prioritário</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-2 text-purple-500"></i>Gerente de conta dedicado</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-2 text-purple-500"></i>Customizações avançadas</li>
+                    </ul>
+                    <a href="register_page.php?plan=3" 
+                       class="block w-full py-2.5 bg-slate-900 hover:bg-black text-white font-semibold rounded-full text-center text-sm transition">
+                        Falar com vendas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white pt-16 pb-8 border-t border-slate-200">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8">
+                <div class="mb-4 md:mb-0">
+                                            <img src="get_whitelabel_asset.php?wl=3&amp;type=logo" alt="Toma Lead" class="h-8" style="max-width: 150px;">
+                                    </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-slate-400 hover:text-brand-600 transition"><i class="fab fa-instagram text-xl"></i></a>
+                    <a href="#" class="text-slate-400 hover:text-brand-600 transition"><i class="fab fa-linkedin text-xl"></i></a>
+                </div>
+            </div>
+            <div class="border-t border-slate-100 pt-8 text-center md:text-left text-sm text-slate-500 flex flex-col md:flex-row justify-between">
+                <p>&copy; 2024 Toma Lead. Todos os direitos reservados.</p>
+                <div class="space-x-4 mt-4 md:mt-0">
+                    <a href="#" class="hover:text-slate-800">Termos</a>
+                    <a href="#" class="hover:text-slate-800">Privacidade</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Script Pipeline Demo -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Drag and Drop Demo Logic
+            const cards = document.querySelectorAll('.demo-card');
+            const dropZones = document.querySelectorAll('.drop-zone');
+            let draggedItem = null;
+
+            cards.forEach(card => {
+                card.addEventListener('dragstart', function() {
+                    draggedItem = this;
+                    setTimeout(() => this.classList.add('dragging'), 0);
+                });
+                card.addEventListener('dragend', function() {
+                    setTimeout(() => {
+                        this.classList.remove('dragging');
+                        draggedItem = null;
+                    }, 0);
+                    dropZones.forEach(zone => zone.classList.remove('drag-over'));
+                });
+            });
+
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('drag-over');
+                });
+                zone.addEventListener('dragleave', function(e) {
+                    this.classList.remove('drag-over');
+                });
+                zone.addEventListener('drop', function(e) {
+                    this.classList.remove('drag-over');
+                    const afterElement = getDragAfterElement(this, e.clientY);
+                    if (draggedItem) {
+                        if (afterElement == null) {
+                            this.appendChild(draggedItem);
+                        } else {
+                            this.insertBefore(draggedItem, afterElement);
+                        }
+                    }
+                });
+            });
+
+            function getDragAfterElement(container, y) {
+                const draggableElements = [...container.querySelectorAll('.demo-card:not(.dragging)')];
+                return draggableElements.reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+                    if (offset < 0 && offset > closest.offset) {
+                        return { offset: offset, element: child };
+                    } else {
+                        return closest;
+                    }
+                }, { offset: Number.NEGATIVE_INFINITY }).element;
+            }
+
+            // --- Chat Animation Simulation ---
+            const chatScreen = document.getElementById('chat-simulation');
+            
+            const messages = [
+                { type: 'received', text: 'Olá, gostaria de saber o preço do plano Pro.', delay: 1000 },
+                { type: 'typing', delay: 2500 },
+                { type: 'sent', text: 'Olá! 👋 O plano Professional custa R$ 297/mês e inclui usuários ilimitados e o Chatbot com IA.', delay: 4500 },
+                { type: 'received', text: 'Legal! E tem integração com Pixel do Facebook?', delay: 7000 },
+                { type: 'typing', delay: 8500 },
+                { type: 'sent', text: 'Sim! Temos integração nativa com Pixel Meta. Disparamos o evento "Lead" automaticamente. 🚀', delay: 10500 },
+                { type: 'notification', delay: 11000 } // Trigger CRM notification
+            ];
+
+            let currentTime = 0;
+
+            function createBubble(type, text) {
+                const div = document.createElement('div');
+                div.className = `chat-bubble ${type}`;
+                
+                div.innerHTML = `
+                    ${text}
+                    <div class="chat-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                `;
+                return div;
+            }
+
+            function createTyping() {
+                const div = document.createElement('div');
+                div.className = 'typing-indicator chat-bubble received';
+                div.id = 'typing-bubble';
+                div.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+                return div;
+            }
+
+            function runSimulation() {
+                chatScreen.innerHTML = ''; // Reset
+                
+                messages.forEach(msg => {
+                    setTimeout(() => {
+                        if (msg.type === 'typing') {
+                            const typing = createTyping();
+                            typing.style.display = 'block';
+                            chatScreen.appendChild(typing);
+                            chatScreen.scrollTop = chatScreen.scrollHeight;
+                        } else if (msg.type === 'notification') {
+                            // Show notification visual
+                            const notif = document.querySelector('.crm-notification');
+                            if(notif) {
+                                notif.style.display = 'block';
+                                notif.style.animation = 'none';
+                                notif.offsetHeight; /* trigger reflow */
+                                notif.style.animation = 'slideLeft 0.5s ease-out forwards';
+                            }
+                        } else {
+                            // Remove typing if exists
+                            const typing = document.getElementById('typing-bubble');
+                            if (typing) typing.remove();
+
+                            const bubble = createBubble(msg.type, msg.text);
+                            chatScreen.appendChild(bubble);
+                            chatScreen.scrollTop = chatScreen.scrollHeight;
+                        }
+                    }, msg.delay);
+                });
+            }
+
+            // Start animation loop
+            runSimulation();
+            setInterval(runSimulation, 16000); // Restart loop
+        });
+
+        // PWA: registrar Service Worker e botão Instalar app (erros no console F12)
+        (function() {
+            var log = function(msg, isError) {
+                try {
+                    if (isError) console.error('[PWA]', msg);
+                    else console.log('[PWA]', msg);
+                } catch (e) {}
+            };
+            var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js', { scope: '/' })
+                    .then(function(reg) {
+                        log('Service Worker registrado: ' + reg.scope);
+                        if (reg.installing) log('SW instalando...');
+                        else if (reg.waiting) log('SW em espera');
+                        else if (reg.active) log('SW ativo');
+                    })
+                    .catch(function(e) {
+                        log('Erro ao registrar Service Worker: ' + e.message, true);
+                    });
+            }
+            var installPrompt = null;
+            var installBanner = document.getElementById('pwa-install-banner');
+            var headerLabel = document.getElementById('header-install-label');
+            if (headerLabel && isIOS) headerLabel.textContent = 'Abrir como app';
+            function triggerInstall() {
+                if (installPrompt) {
+                    installPrompt.prompt();
+                    installPrompt.userChoice.then(function(r) {
+                        log(r.outcome === 'accepted' ? 'Usuário aceitou instalar' : 'Usuário recusou instalar');
+                        installPrompt = null;
+                        if (installBanner) installBanner.classList.add('hidden');
+                    });
+                    return true;
+                }
+                return false;
+            }
+            var headerLink = document.getElementById('header-install-app');
+            if (headerLink) {
+                headerLink.addEventListener('click', function(ev) {
+                    if (installPrompt) { ev.preventDefault(); triggerInstall(); }
+                });
+            }
+            window.addEventListener('beforeinstallprompt', function(e) {
+                e.preventDefault();
+                installPrompt = e;
+                log('PWA pode ser instalado (beforeinstallprompt)');
+                if (installBanner) {
+                    document.getElementById('pwa-ios-hint')?.classList.add('hidden');
+                    installBanner.classList.remove('hidden');
+                    var btn = document.getElementById('pwa-install-btn');
+                    if (btn) btn.addEventListener('click', function() { triggerInstall(); });
+                }
+            });
+            window.addEventListener('appinstalled', function() {
+                log('App instalado');
+                if (installBanner) installBanner.classList.add('hidden');
+            });
+            if (installBanner) {
+                if (installPrompt) {
+                    var btn = document.getElementById('pwa-install-btn');
+                    if (btn) btn.addEventListener('click', function() { triggerInstall(); });
+                } else {
+                    var showLink = document.getElementById('pwa-open-app-link');
+                    if (showLink) showLink.classList.remove('hidden');
+                    if (isIOS) {
+                        installBanner.classList.remove('hidden');
+                        document.getElementById('pwa-install-btn-wrap')?.classList.add('hidden');
+                        document.getElementById('pwa-ios-hint')?.classList.remove('hidden');
+                        document.getElementById('pwa-android-hint')?.classList.add('hidden');
+                    }
+                }
+            }
+        })();
+    </script>
+
+    <!-- Linha animada das abas de funcionalidades -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var list = document.querySelector('.feature-tabs-list');
+            if (!list) return;
+
+            var tabs = Array.prototype.slice.call(list.querySelectorAll('.feature-tab'));
+            var line = list.querySelector('.feature-tabs-line-js');
+            if (!tabs.length || !line) return;
+
+            function updateLine(tab) {
+                var listRect = list.getBoundingClientRect();
+                var rect = tab.getBoundingClientRect();
+
+                var left = rect.left - listRect.left;
+                var width = rect.width;
+                var top = rect.bottom - listRect.top - 1; // base do retângulo
+
+                line.style.left = left + 'px';
+                line.style.width = width + 'px';
+                line.style.top = top + 'px';
+
+                // destaque visual do retângulo atual
+                tabs.forEach(function(t) { t.classList.remove('feature-tab-active'); });
+                tab.classList.add('feature-tab-active');
+            }
+
+            var index = 0;
+            updateLine(tabs[index]);
+
+            setInterval(function () {
+                index = (index + 1) % tabs.length;
+                updateLine(tabs[index]);
+            }, 1600);
+
+            // recalc em resize para alinhar
+            window.addEventListener('resize', function () {
+                updateLine(tabs[index]);
+            });
+        });
+    </script>
+
+    <div id="pwa-install-banner" class="hidden fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-sm bg-slate-900 text-white rounded-xl shadow-xl p-4 z-50 border border-slate-700">
+        <p class="text-sm font-medium mb-2">Instale o Toma Lead no celular</p>
+        <p id="pwa-ios-hint" class="text-xs text-slate-300 mb-3 hidden">No iPhone: toque em <strong>Compartilhar</strong> e depois em <strong>Adicionar à Tela de Início</strong> para usar como app.</p>
+        <p id="pwa-android-hint" class="text-xs text-slate-400 mb-3">Acesso rápido ao chat como app.</p>
+        <div class="flex gap-2 items-center">
+            <div id="pwa-install-btn-wrap" class="flex-1">
+                <button id="pwa-install-btn" type="button" class="w-full min-h-[44px] bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold py-3 px-4 rounded-lg">Instalar</button>
+            </div>
+            <a id="pwa-open-app-link" href="chat.php" class="hidden flex-1 text-center bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold py-3 px-4 rounded-lg min-h-[44px] flex items-center justify-center">Abrir Chat</a>
+            <button type="button" onclick="this.closest('#pwa-install-banner').classList.add('hidden')" class="text-slate-400 hover:text-white p-2 min-w-[44px] min-h-[44px] flex items-center justify-center">×</button>
+        </div>
+    </div>
+</body>
+</html>
